@@ -143,6 +143,19 @@ día. `DELETE /meals/{id}` elimina una comida del usuario autenticado. Tras
 actualizar esta rama, ejecutar `docker compose exec backend alembic upgrade head`
 para crear la tabla `meal_entries`.
 
+## Seguimiento del bienestar
+
+En Progreso se puede registrar sueño, estrés y fatiga. La app consulta
+`GET /wellbeing` y envía el registro del día a `POST /wellbeing`; si ya existe
+uno para ese usuario y fecha, el backend lo actualiza. Cada usuario ve solo
+sus propios registros en PostgreSQL. También está disponible
+`DELETE /wellbeing/{id}` para eliminar un registro propio.
+
+Después de actualizar el backend, ejecutar
+`docker compose exec backend alembic upgrade head` para crear la tabla
+`wellbeing_entries`. Para verificarlo, guardar un registro, cerrar y volver a
+abrir la app y comprobar que los valores siguen apareciendo en Progreso.
+
 ## Importante
 
 No subir a GitHub los archivos `.env`, contraseñas, claves JWT ni tokens.

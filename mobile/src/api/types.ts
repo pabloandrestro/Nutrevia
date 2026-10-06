@@ -49,6 +49,20 @@ export interface WeightEntry {
   weightKg: number;
 }
 
+export interface WellbeingEntry {
+  id: number;
+  recordedOn: string;
+  sleepHours: number | null;
+  stressLevel: number | null;
+  fatigueLevel: number | null;
+}
+
+export interface WellbeingInput {
+  sleepHours: number | null;
+  stressLevel: number | null;
+  fatigueLevel: number | null;
+}
+
 export interface AuthCredentials {
   email: string;
   password: string;

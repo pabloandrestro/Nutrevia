@@ -4,7 +4,7 @@ import { router, useFocusEffect } from 'expo-router';
 import { Trash2 } from 'lucide-react-native';
 import { api } from '@/api';
 import { formatWeightDate } from '@/api/weightDate';
-import { GoalType, ProfileResult, WeightEntry } from '@/api/types';
+import { GoalType, ProfileResult, WeightEntry, WellbeingEntry } from '@/api/types';
 import { AppScreen } from '@/components/app-screen';
 import { BrandMark } from '@/components/brand-mark';
 import { Card } from '@/components/ui/Card';
@@ -20,6 +20,7 @@ const goalLabels: Record<GoalType, string> = { lose: 'Bajar', maintain: 'Mantene
 export default function ProgressScreen() {
   const theme = useTheme();
   const [history, setHistory] = useState<WeightEntry[] | null>(null);
+  const [wellbeingHistory, setWellbeingHistory] = useState<WellbeingEntry[]>([]);
   const [profile, setProfile] = useState<ProfileResult | null>(null);
   const [goalType, setGoalType] = useState<GoalType | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -28,12 +29,13 @@ export default function ProgressScreen() {
   const loadProgress = useCallback(async () => {
     setErrorMessage(null);
     try {
-      const [entries, userProfile, goal] = await Promise.all([
-        api.getWeightHistory(), api.getProfile(), api.getNutritionGoal(),
+      const [entries, userProfile, goal, wellbeingEntries] = await Promise.all([
+        api.getWeightHistory(), api.getProfile(), api.getNutritionGoal(), api.getWellbeingHistory(),
       ]);
       setHistory(entries.sort((a, b) => a.recordedOn.localeCompare(b.recordedOn)));
       setProfile(userProfile);
       setGoalType(goal.goalType);
+      setWellbeingHistory(wellbeingEntries);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'No fue posible cargar el progreso.');
     }
@@ -79,6 +81,7 @@ export default function ProgressScreen() {
   const currentWeight = history[history.length - 1]?.weightKg ?? profile.currentWeightKg;
   const totalChange = currentWeight - profile.currentWeightKg;
   const recentEntries = [...history].reverse();
+  const latestWellbeing = wellbeingHistory.at(-1);
 
   return (
     <AppScreen scroll>
@@ -142,7 +145,39 @@ export default function ProgressScreen() {
         </Card>
       ))}
 
+      {latestWellbeing && (
+        <>
+          <ThemedText type="smallBold" style={{ marginTop: Spacing.four }}>Bienestar</ThemedText>
+          <Card style={{ marginTop: Spacing.two }}>
+            <ThemedText type="small" themeColor="textSecondary">
+              Último registro — {formatWeightDate(latestWellbeing.recordedOn)}
+            </ThemedText>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: Spacing.two }}>
+              <View>
+                <ThemedText type="small" themeColor="textSecondary">Sueño</ThemedText>
+                <ThemedText type="smallBold">
+                  {latestWellbeing.sleepHours !== null ? `${latestWellbeing.sleepHours} h` : '—'}
+                </ThemedText>
+              </View>
+              <View>
+                <ThemedText type="small" themeColor="textSecondary">Estrés</ThemedText>
+                <ThemedText type="smallBold">
+                  {latestWellbeing.stressLevel !== null ? `${latestWellbeing.stressLevel}/5` : '—'}
+                </ThemedText>
+              </View>
+              <View>
+                <ThemedText type="small" themeColor="textSecondary">Fatiga</ThemedText>
+                <ThemedText type="smallBold">
+                  {latestWellbeing.fatigueLevel !== null ? `${latestWellbeing.fatigueLevel}/5` : '—'}
+                </ThemedText>
+              </View>
+            </View>
+          </Card>
+        </>
+      )}
+
       <PrimaryButton label="⚖️ Registrar peso" onPress={() => router.push('/log-weight')} style={{ marginTop: Spacing.five }} />
+      <OutlineButton label="📝 Registrar bienestar" tone="accent" onPress={() => router.push('/log-wellbeing')} style={{ marginTop: Spacing.two }} />
       <OutlineButton label="📷 Registrar comida" tone="accent" onPress={() => router.push('/camera')} style={{ marginTop: Spacing.two }} />
     </AppScreen>
   );

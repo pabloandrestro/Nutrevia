@@ -3,6 +3,7 @@ from app.models.profile import Profile
 from app.models.user import User
 from app.models.weight_entry import WeightEntry
 from app.models.meal_entry import MealEntry
+from app.models.wellbeing_entry import WellbeingEntry
 
 __all__ = [
     "User",
@@ -10,4 +11,5 @@ __all__ = [
     "NutritionGoal",
     "WeightEntry",
     "MealEntry",
+    "WellbeingEntry",
 ]

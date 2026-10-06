@@ -15,6 +15,8 @@ import {
   ProfileInput,
   ProfileResult,
   WeightEntry,
+  WellbeingEntry,
+  WellbeingInput,
   Meal,
 } from './types';
 
@@ -68,6 +70,14 @@ interface BackendWeightEntry {
   id: number;
   recorded_on: string;
   weight_kg: number;
+}
+
+interface BackendWellbeingEntry {
+  id: number;
+  recorded_on: string;
+  sleep_hours: number | null;
+  stress_level: number | null;
+  fatigue_level: number | null;
 }
 
 
@@ -182,6 +192,16 @@ function mapWeightEntry(entry: BackendWeightEntry): WeightEntry {
     id: entry.id,
     recordedOn: entry.recorded_on,
     weightKg: entry.weight_kg,
+  };
+}
+
+function mapWellbeingEntry(entry: BackendWellbeingEntry): WellbeingEntry {
+  return {
+    id: entry.id,
+    recordedOn: entry.recorded_on,
+    sleepHours: entry.sleep_hours,
+    stressLevel: entry.stress_level,
+    fatigueLevel: entry.fatigue_level,
   };
 }
 
@@ -548,6 +568,51 @@ export async function deleteWeightEntry(entryId: number): Promise<void> {
   if (!response.ok) {
     throw new Error(await getErrorMessage(response));
   }
+}
+
+export async function getWellbeingHistory(): Promise<WellbeingEntry[]> {
+  const token = await getAccessToken();
+  if (!token) throw new Error('Debes iniciar sesión nuevamente.');
+  const response = await fetch(`${getApiUrl()}/wellbeing`, {
+    headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error(await getErrorMessage(response));
+  const entries: BackendWellbeingEntry[] = await response.json();
+  return entries.map(mapWellbeingEntry);
+}
+
+export async function saveWellbeingEntry(
+  recordedOn: string,
+  input: WellbeingInput,
+): Promise<WellbeingEntry> {
+  const token = await getAccessToken();
+  if (!token) throw new Error('Debes iniciar sesión nuevamente.');
+  const response = await fetch(`${getApiUrl()}/wellbeing`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      recorded_on: recordedOn,
+      sleep_hours: input.sleepHours,
+      stress_level: input.stressLevel,
+      fatigue_level: input.fatigueLevel,
+    }),
+  });
+  if (!response.ok) throw new Error(await getErrorMessage(response));
+  return mapWellbeingEntry(await response.json());
+}
+
+export async function deleteWellbeingEntry(entryId: number): Promise<void> {
+  const token = await getAccessToken();
+  if (!token) throw new Error('Debes iniciar sesión nuevamente.');
+  const response = await fetch(`${getApiUrl()}/wellbeing/${entryId}`, {
+    method: 'DELETE',
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) throw new Error(await getErrorMessage(response));
 }
 
 
