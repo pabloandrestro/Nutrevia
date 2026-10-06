@@ -156,6 +156,16 @@ Después de actualizar el backend, ejecutar
 `wellbeing_entries`. Para verificarlo, guardar un registro, cerrar y volver a
 abrir la app y comprobar que los valores siguen apareciendo en Progreso.
 
+## Resumen semanal de Progreso
+
+`GET /progress/weekly?week_start=AAAA-MM-DD` devuelve los siete días de una
+semana que comienza en lunes. Resume comidas y pesos persistidos del usuario
+autenticado, junto con sus objetivos nutricionales. Los promedios de calorías
+y proteínas consideran solo los días con comidas registradas; el cambio de
+peso aparece únicamente cuando hay al menos dos pesos en esa semana. La app
+consulta este endpoint al abrir Progreso y muestra el gráfico semanal sin
+depender de datos locales de ejemplo.
+
 ## Importante
 
 No subir a GitHub los archivos `.env`, contraseñas, claves JWT ni tokens.

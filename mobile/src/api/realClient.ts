@@ -17,6 +17,7 @@ import {
   WeightEntry,
   WellbeingEntry,
   WellbeingInput,
+  WeeklyProgress,
   Meal,
 } from './types';
 
@@ -568,6 +569,42 @@ export async function deleteWeightEntry(entryId: number): Promise<void> {
   if (!response.ok) {
     throw new Error(await getErrorMessage(response));
   }
+}
+
+export async function getWeeklyProgress(weekStart: string): Promise<WeeklyProgress> {
+  const token = await getAccessToken();
+  if (!token) throw new Error('Debes iniciar sesión nuevamente.');
+  const response = await fetch(
+    `${getApiUrl()}/progress/weekly?week_start=${encodeURIComponent(weekStart)}`,
+    { headers: { Accept: 'application/json', Authorization: `Bearer ${token}` } },
+  );
+  if (!response.ok) throw new Error(await getErrorMessage(response));
+  const result: {
+    week_start: string;
+    days: { recorded_on: string; has_registry: boolean; calories: number; protein_grams: number; weight_kg: number | null }[];
+    days_with_registry: number;
+    avg_calories: number;
+    avg_protein: number;
+    weight_change: number | null;
+    goal_calories: number;
+    goal_protein_grams: number;
+  } = await response.json();
+  return {
+    weekStart: result.week_start,
+    days: result.days.map((day) => ({
+      recordedOn: day.recorded_on,
+      hasRegistry: day.has_registry,
+      calories: day.calories,
+      proteinGrams: day.protein_grams,
+      weightKg: day.weight_kg,
+    })),
+    daysWithRegistry: result.days_with_registry,
+    avgCalories: result.avg_calories,
+    avgProtein: result.avg_protein,
+    weightChange: result.weight_change,
+    goalCalories: result.goal_calories,
+    goalProteinGrams: result.goal_protein_grams,
+  };
 }
 
 export async function getWellbeingHistory(): Promise<WellbeingEntry[]> {

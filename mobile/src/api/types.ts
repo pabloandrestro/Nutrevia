@@ -49,6 +49,25 @@ export interface WeightEntry {
   weightKg: number;
 }
 
+export interface WeeklyDay {
+  recordedOn: string;
+  hasRegistry: boolean;
+  calories: number;
+  proteinGrams: number;
+  weightKg: number | null;
+}
+
+export interface WeeklyProgress {
+  weekStart: string;
+  days: WeeklyDay[];
+  daysWithRegistry: number;
+  avgCalories: number;
+  avgProtein: number;
+  weightChange: number | null;
+  goalCalories: number;
+  goalProteinGrams: number;
+}
+
 export interface WellbeingEntry {
   id: number;
   recordedOn: string;
