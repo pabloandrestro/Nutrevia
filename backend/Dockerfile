@@ -8,7 +8,14 @@ RUN apt-get update \
 
 COPY requirements.txt .
 
-RUN pip install --no-cache-dir -r requirements.txt
+# El backend ejecuta YOLO en CPU. Instalar primero estas ruedas evita que
+# ultralytics arrastre la distribución de PyTorch con dependencias CUDA.
+RUN pip install --no-cache-dir \
+    torch==2.14.1+cpu torchvision==0.29.1+cpu \
+    --index-url https://download.pytorch.org/whl/cpu
+
+RUN pip install --no-cache-dir -r requirements.txt \
+    && python -c "import torch; assert torch.version.cuda is None, 'PyTorch instaló CUDA inesperadamente'"
 
 COPY app ./app
 
