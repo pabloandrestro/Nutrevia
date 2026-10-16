@@ -27,7 +27,17 @@ function formatSelectedDate(date: Date) {
   return new Intl.DateTimeFormat('es-CL', { day: 'numeric', month: 'long' }).format(date);
 }
 
-function MealOptionsMenu({ onDelete }: { onDelete: () => void }) {
+// CAMBIO 1: el menú ahora recibe canEdit y onEdit. "Editar comida" solo se
+// muestra para comidas registradas por el usuario (las del almacén local).
+function MealOptionsMenu({
+  canEdit,
+  onEdit,
+  onDelete,
+}: {
+  canEdit: boolean;
+  onEdit: () => void;
+  onDelete: () => void;
+}) {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
 
@@ -52,13 +62,18 @@ function MealOptionsMenu({ onDelete }: { onDelete: () => void }) {
             zIndex: 10,
           }}
         >
-          <TouchableOpacity
-            onPress={() => setOpen(false)}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two, paddingVertical: Spacing.two, paddingHorizontal: Spacing.three }}
-          >
-            <Pencil color={theme.text} size={16} />
-            <ThemedText type="small">Editar comida</ThemedText>
-          </TouchableOpacity>
+          {canEdit && (
+            <TouchableOpacity
+              onPress={() => {
+                setOpen(false);
+                onEdit();
+              }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two, paddingVertical: Spacing.two, paddingHorizontal: Spacing.three }}
+            >
+              <Pencil color={theme.text} size={16} />
+              <ThemedText type="small">Editar comida</ThemedText>
+            </TouchableOpacity>
+          )}
 
           <TouchableOpacity
             onPress={() => {
@@ -103,6 +118,11 @@ export default function DiaryScreen() {
   useEffect(() => {
     return subscribeToLocalMeals(() => setAllLocalMeals(getLocalMeals()));
   }, []);
+
+  // CAMBIO 2: abre la pantalla de edición de la comida elegida.
+  const handleEditMeal = (mealId: string) => {
+    router.push({ pathname: '/edit-meal', params: { mealId } });
+  };
 
   const handleDeleteMeal = (mealId: string) => {
     const isLocal = allLocalMeals.some((meal) => meal.id === mealId);
@@ -244,7 +264,12 @@ export default function DiaryScreen() {
 
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: Spacing.two }}>
               <ThemedText type="smallBold">{meal.calories} kcal</ThemedText>
-              <MealOptionsMenu onDelete={() => handleDeleteMeal(meal.id)} />
+              {/* CAMBIO 3: solo las comidas del almacén local se pueden editar */}
+              <MealOptionsMenu
+                canEdit={allLocalMeals.some((localMeal) => localMeal.id === meal.id)}
+                onEdit={() => handleEditMeal(meal.id)}
+                onDelete={() => handleDeleteMeal(meal.id)}
+              />
             </View>
           </ThemedView>
         ))

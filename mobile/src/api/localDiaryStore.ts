@@ -21,15 +21,28 @@ export function toDateKey(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
+// Campos que se pueden modificar al editar una comida. El id y la fecha
+// quedan fijos para que la comida siga en el mismo día del diario.
+export type LocalMealChanges = Partial<Omit<Meal, 'id' | 'date'>>;
+
 export function addLocalMeal(meal: Meal) {
   const mealWithDate: Meal = { date: toDateKey(new Date()), ...meal };
   localMeals = [...localMeals, mealWithDate];
   notify();
 }
 
+export function updateLocalMeal(mealId: string, changes: LocalMealChanges) {
+  localMeals = localMeals.map((meal) => (meal.id === mealId ? { ...meal, ...changes } : meal));
+  notify();
+}
+
 export function removeLocalMeal(mealId: string) {
   localMeals = localMeals.filter((meal) => meal.id !== mealId);
   notify();
+}
+
+export function getLocalMealById(mealId: string): Meal | undefined {
+  return localMeals.find((meal) => meal.id === mealId);
 }
 
 export function getLocalMeals(): Meal[] {
